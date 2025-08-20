@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Tracker Auth</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.container {
+  width: 360px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+ 
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+}
+h2 { text-align: center; color: #333; }
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #4facfe;
+  border-radius: 5px;
+  background: #4facfe;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+.switch-btn {
+  margin: 5px 0;
+  font-size: 14px;
+  cursor: pointer;
+  color: #4facfe;
+  background: none;
+  border: 1px solid #4facfe;
+}
+.error {
+  color: red;
+  font-size: 13px;
+  margin: 5px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2 id="formTitle">Login</h2>
+  
+  <input type="text" id="name" placeholder="Full Name" style="display:none;">
+  <input type="text" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <input type="password" id="confirm" placeholder="Confirm Password" style="display:none;">
+  <input type="text" id="code" placeholder="Verification Code" style="display:none;">
+  
+  <div id="error"></div>
+  
+  <button id="submitBtn">Login</button>
+  <button id="switchBtn" class="switch-btn">Switch to Signup</button>
+  <button class="switch-btn" onclick="showForm('forgot')">Forgot Password?</button>
+</div>
+
+<script>
+let currentForm = "login"; 
+
+
+const forms = {
+  login: { title:"Login", show:["password"], hide:["name","confirm","code"], submit:"Login", switchText:"Switch to Signup" },
+  signup: { title:"Sign Up", show:["name","confirm","password"], hide:["code"], submit:"Sign Up", switchText:"Switch to Login" },
+  forgot: { title:"Forgot Password", show:[], hide:["name","confirm","password","code"], submit:"Send Reset Link", switchText:"Back to Login" },
+  reset: { title:"Reset Password", show:["confirm","password"], hide:["name","code"], submit:"Reset Password", switchText:"Back to Login" },
+  verify: { title:"Email Verification", show:["code"], hide:["name","confirm","password"], submit:"Verify Email", switchText:"Back to Login" }
+};
+
+function showForm(formName){
+  currentForm = formName;
+  showError(""); 
+
+ 
+  ["name","email","password","confirm","code"].forEach(id => document.getElementById(id).value="");
+
+
+  ["name","password","confirm","code"].forEach(id => {
+    document.getElementById(id).style.display = forms[formName].show.includes(id) ? "block" : "none";
+  });
+
+  
+  document.getElementById("formTitle").innerText = forms[formName].title;
+  document.getElementById("submitBtn").innerText = forms[formName].submit;
+  document.getElementById("switchBtn").innerText = forms[formName].switchText;
+}
+
+function isValidEmail(email){
+  return email.includes("@") && email.includes(".");
+}
+
+function showError(msg){
+  document.getElementById("error").innerHTML = msg; // simple way
+}
+
+document.getElementById("submitBtn").onclick = function(){
+  let name = document.getElementById("name").value.trim();
+  let email = document.getElementById("email").value.trim();
+  let pass = document.getElementById("password").value.trim();
+  let confirm = document.getElementById("confirm").value.trim();
+  let code = document.getElementById("code").value.trim();
+
+  if(currentForm==="login"){
+    if(!isValidEmail(email)){ showError("Enter a valid email"); return; }
+    if(pass===""){ showError("Password required"); return; }
+    alert("Login Successful");
+  } 
+  else if(currentForm==="signup"){
+    if(name===""){ showError("Full name required"); return; }
+    if(!isValidEmail(email)){ showError("Enter a valid email"); return; }
+    if(pass.length<6){ showError("Password must be at least 6 chars"); return; }
+    if(confirm!==pass || confirm===""){ showError("Passwords do not match"); return; }
+    alert("Signup Successful! Please verify email");
+    showForm("verify");
+  }
+  else if(currentForm==="forgot"){
+    if(!isValidEmail(email)){ showError("Enter a valid email"); return; }
+    alert("Reset link sent");
+    showForm("reset");
+  }
+  else if(currentForm==="reset"){
+    if(pass.length<6){ showError("Password too short"); return; }
+    if(confirm!==pass || confirm===""){ showError("Passwords do not match"); return; }
+    alert("Password reset successful");
+    showForm("login");
+  }
+  else if(currentForm==="verify"){
+    if(code===""){ showError("Enter verification code"); return; }
+    alert("Email Verified!");
+    showForm("login");
+  }
+}
+
+document.getElementById("switchBtn").onclick = function(){
+  if(currentForm==="login") showForm("signup");
+  else showForm("login");
+}
+
+// initialize
+showForm("login");
+</script>
+</body>
+</html>

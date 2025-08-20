@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Logger</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background: #e0f7fa;
+    }
+
+    .sidebar {
+        width: 180px;
+        background: #00796b;
+        color: white;
+        padding-top: 20px;
+    }
+
+    .sidebar button {
+        display: block;
+        width: 90%;
+        margin: 10px auto;
+        padding: 12px;
+        background: #00796b;
+        border: none;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        text-align: left;
+    }
+
+    .sidebar button:hover {
+        background: #004d40;
+    }
+
+    .main {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .screen {
+        display: none;
+        background: #b2dfdb;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 700px;
+        margin: auto;
+    }
+
+    input, textarea, button, label {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #004d40;
+    }
+
+    label {
+        margin-top: 12px;
+        font-weight: bold;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background: white;
+    }
+
+    th, td {
+        border: 1px solid #004d40;
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background: #004d40;
+        color: white;
+    }
+
+    #timeDisplay {
+        font-size: 2em;
+        text-align: center;
+        margin: 20px 0;
+        font-family: monospace;
+    }
+
+    
+    #savedSessions {
+        margin-top: 20px;
+    }
+
+    #savedSessions table {
+        margin-top: 10px;
+        border: 1px solid #00796b;
+    }
+
+    #savedSessions p {
+        margin: 15px 0 5px;
+        font-weight: bold;
+        color: #004d40;
+    }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <button onclick="showTimer()">Workout Timer</button>
+    <button onclick="showLogger()">Exercise Logger</button>
+    <button onclick="showSummary()">Session Summary</button>
+</div>
+
+<div class="main">
+    <h2 style="text-align:center;">Workout Logger</h2>
+
+
+    <div id="timerScreen" class="screen">
+        <h3 style="text-align:center;">Workout Timer</h3>
+        <p id="timeDisplay">00:00:00</p>
+        <button onclick="startTimer()">Start</button>
+        <button onclick="stopTimer()">Stop</button>
+        <button onclick="resetTimer()">Reset</button>
+    </div>
+
+    <div id="loggerScreen" class="screen">
+        <h3 style="text-align:center;">Exercise Logger</h3>
+        <label for="exerciseName">Exercise Name</label>
+        <input type="text" id="exerciseName" placeholder="e.g. Push Up">
+
+        <label for="sets">Sets</label>
+        <input type="number" id="sets" placeholder="Sets" min="1" value="1">
+
+        <label for="reps">Reps</label>
+        <input type="number" id="reps" placeholder="Reps" min="1" value="1">
+
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" placeholder="Weight (kg)" min="0" value="0">
+
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Notes"></textarea>
+
+        <button onclick="addExercise()">Add Exercise</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Exercise</th>
+                    <th>Sets</th>
+                    <th>Reps</th>
+                    <th>Weight</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody id="exerciseTable"></tbody>
+        </table>
+    </div>
+
+    
+    <div id="summaryScreen" class="screen">
+        <h3 style="text-align:center;">Session Summary</h3>
+        <button onclick="saveSession()">Save Session</button>
+        <div id="savedSessions"></div>
+    </div>
+</div>
+
+<script>
+let timer;
+let seconds = 0;
+
+function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(function() {
+        seconds++;
+        let hrs = Math.floor(seconds / 3600);
+        let mins = Math.floor((seconds % 3600) / 60);
+        let secs = seconds % 60;
+
+       let displayHrs = String(hrs).padStart(2, "0");
+       let displayMins = String(mins).padStart(2, "0");
+       let displaySecs = String(secs).padStart(2, "0");
+
+
+        document.getElementById('timeDisplay').textContent =
+            displayHrs + ':' + displayMins + ':' + displaySecs;
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timer);
+}
+
+function resetTimer() {
+    clearInterval(timer);
+    seconds = 0;
+    document.getElementById('timeDisplay').textContent = '00:00:00';
+}
+
+function showTimer() {
+    document.getElementById('timerScreen').style.display = 'block';
+    document.getElementById('loggerScreen').style.display = 'none';
+    document.getElementById('summaryScreen').style.display = 'none';
+}
+
+function showLogger() {
+    document.getElementById('timerScreen').style.display = 'none';
+    document.getElementById('loggerScreen').style.display = 'block';
+    document.getElementById('summaryScreen').style.display = 'none';
+}
+
+function showSummary() {
+    document.getElementById('timerScreen').style.display = 'none';
+    document.getElementById('loggerScreen').style.display = 'none';
+    document.getElementById('summaryScreen').style.display = 'block';
+}
+
+function addExercise() {
+    let name = document.getElementById('exerciseName').value.trim();
+    let sets = Number(document.getElementById('sets').value);
+    let reps = Number(document.getElementById('reps').value);
+    let weight = Number(document.getElementById('weight').value);
+    let notes = document.getElementById('notes').value.trim();
+
+    if (!name) { 
+        alert('Enter exercise name'); 
+        return; 
+    }
+    if (sets < 1 || reps < 1) {
+        alert('Sets and Reps must be 1 or more');
+        return;
+    }
+    if (weight < 0) {
+        alert('Weight cannot be negative');
+        return;
+    }
+
+    let table = document.getElementById('exerciseTable');
+    let row = table.insertRow();
+    row.insertCell(0).textContent = name;
+    row.insertCell(1).textContent = sets;
+    row.insertCell(2).textContent = reps;
+    row.insertCell(3).textContent = weight;
+    row.insertCell(4).textContent = notes;
+
+    
+    document.getElementById('exerciseName').value = '';
+    document.getElementById('sets').value = '1';
+    document.getElementById('reps').value = '1';
+    document.getElementById('weight').value = '0';
+    document.getElementById('notes').value = '';
+}
+
+function saveSession() {
+    let table = document.getElementById('exerciseTable');
+    if (table.rows.length === 0) { 
+        alert('No exercises logged'); 
+        return; 
+    }
+
+    let summaryDiv = document.getElementById('savedSessions');
+    let sessionHTML = `<p>Session (${new Date().toLocaleString()}):</p>`;
+    sessionHTML += table.outerHTML;
+    summaryDiv.innerHTML += sessionHTML;
+
+    table.innerHTML = '';
+    resetTimer();
+    alert('Session saved!');
+}
+
+showTimer();
+</script>
+
+</body>
+</html>
